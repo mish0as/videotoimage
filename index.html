@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎬 Video to Image Converter Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --accent: #238636;
+      --accent-hover: #2ea043;
+      --text: #c9d1d9;
+      --text-secondary: #8b949e;
+      --border: #30363d;
+      --progress: #238636;
+      --progress-bg: #30363d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+
+    .card {
+      background: var(--card);
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin-top: 1.5rem;
+      border: 1px solid var(--border);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+
+    .file-input-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(14, 18, 25, 0.5);
+    }
+
+    .file-input-label:hover {
+      border-color: var(--accent);
+      background: rgba(35, 134, 54, 0.1);
+    }
+
+    .file-input-label i {
+      font-size: 3rem;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .file-input-label span {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .file-input-label small {
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+    }
+
+    #videoInput {
+      position: absolute;
+      width: 0.1px;
+      height: 0.1px;
+      opacity: 0;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+
+    .control-group label {
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+    }
+
+    .control-group label i {
+      margin-right: 0.5rem;
+      color: var(--accent);
+      width: 20px;
+      text-align: center;
+    }
+
+    input[type="number"],
+    input[type="range"],
+    select {
+      background: #0e1219;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    input[type="number"]:focus,
+    input[type="range"]:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(35, 134, 54, 0.3);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      height: 8px;
+      padding: 0;
+      background: var(--progress-bg);
+      border-radius: 4px;
+      margin-top: 0.5rem;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .range-value {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.25rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      grid-column: 1 / -1;
+      justify-content: center;
+    }
+
+    button {
+      background: var(--accent);
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
+    }
+
+    button:disabled {
+      background: #30363d;
+      color: #6e7681;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    button.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    button.secondary:hover {
+      background: rgba(201, 209, 217, 0.1);
+      border-color: var(--text-secondary);
+    }
+
+  #video {
+    max-width: 600px;
+    width: 100%;
+    border-radius: 12px;
+    margin: 1.5rem auto;
+    display: none;
+    background: #000;
+    max-height: 400px;
+    object-fit: contain;
+  }
+  
+    .progress-container {
+      width: 100%;
+      background: var(--progress-bg);
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      overflow: hidden;
+      display: none;
+    }
+
+    #progressBar {
+      height: 10px;
+      background: var(--progress);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    #imageContainer {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .image-card {
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .image-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .image-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .image-info {
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .image-info span {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .download-btn {
+      background: rgba(35, 134, 54, 0.2);
+      color: var(--accent);
+      border: none;
+      border-radius: 6px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .download-btn:hover {
+      background: rgba(35, 134, 54, 0.3);
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--border);
+    }
+
+    .batch-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2rem;
+      align-items: center;
+      display: none;
+    }
+
+    .batch-info {
+      color: var(--text-secondary);
+    }
+
+    .batch-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+          #video {
+      max-height: 300px;
+    }
+      .controls {
+        grid-template-columns: 1fr;
+      }
+      
+      .btn-group {
+        flex-direction: column;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+    }
+
+    /* Animation */
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+
+    .loading {
+      animation: pulse 1.5s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-film"></i> Video to Image Converter Pro</h1>
+    <p class="subtitle">Extract high-quality frames from your videos with precision</p>
+    
+    <div class="card">
+      <div class="file-input-wrapper">
+        <input type="file" id="videoInput" accept="video/*">
+        <label for="videoInput" class="file-input-label" id="fileInputLabel">
+          <i class="fas fa-video"></i>
+          <span>Choose a video file</span>
+          <small>MP4, WebM, MOV, AVI, etc. (Max 100MB)</small>
+        </label>
+      </div>
+      
+      <video id="video" controls></video>
+      
+      <div class="progress-container" id="progressContainer">
+        <div id="progressBar"></div>
+        <div class="progress-text">
+          <span id="progressText">Processing...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+      </div>
+      
+      <div class="controls">
+        <div class="control-group">
+          <label><i class="fas fa-clock"></i> Interval (seconds)</label>
+          <input type="number" id="frameInterval" value="3" min="0.1" step="0.1">
+        </div>
+        
+        <div class="control-group">
+          <label><i class="fas fa-sliders-h"></i> Quality</label>
+          <input type="range" id="qualitySlider" min="1" max="100" value="95">
+          <div class="range-value">
+            <span>Low</span>
+            <span id="qualityValue">95%</span>
+            <span>High</span>
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <label><i class="fas fa-file-image"></i> Format</label>
+          <select id="formatSelect">
+            <option value="jpeg">JPEG</option>
+            <option value="png">PNG</option>
+            <option value="webp">WebP</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label><i class="fas fa-ruler-horizontal"></i> Max Width (px)</label>
+          <input type="number" id="maxWidth" placeholder="Original" min="100">
+        </div>
+      </div>
+      
+      <div class="btn-group">
+        <button id="extractBtn" disabled>
+          <i class="fas fa-camera"></i> Extract Frames
+        </button>
+        <button id="previewBtn" disabled class="secondary">
+          <i class="fas fa-eye"></i> Preview First Frame
+        </button>
+      </div>
+    </div>
+    
+    <div class="batch-actions" id="batchActions">
+      <div class="batch-info">
+        <span id="frameCount">0 frames</span> extracted
+      </div>
+      <div class="batch-buttons">
+        <button id="downloadAllBtn" class="secondary">
+          <i class="fas fa-download"></i> Download All
+        </button>
+        <button id="clearAllBtn" class="secondary">
+          <i class="fas fa-trash"></i> Clear All
+        </button>
+      </div>
+    </div>
+    
+    <div id="imageContainer">
+      <div class="empty-state">
+        <i class="fas fa-images"></i>
+        <p>Extracted frames will appear here</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const video = document.getElementById('video');
+    const videoInput = document.getElementById('videoInput');
+    const fileInputLabel = document.getElementById('fileInputLabel');
+    const extractBtn = document.getElementById('extractBtn');
+    const previewBtn = document.getElementById('previewBtn');
+    const frameInterval = document.getElementById('frameInterval');
+    const imageContainer = document.getElementById('imageContainer');
+    const qualitySlider = document.getElementById('qualitySlider');
+    const qualityValue = document.getElementById('qualityValue');
+    const formatSelect = document.getElementById('formatSelect');
+    const maxWidth = document.getElementById('maxWidth');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressPercent = document.getElementById('progressPercent');
+    const batchActions = document.getElementById('batchActions');
+    const frameCount = document.getElementById('frameCount');
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+
+    // State
+    let extractedFrames = [];
+    let isProcessing = false;
+
+    // Event Listeners
+    qualitySlider.addEventListener('input', updateQualityValue);
+    videoInput.addEventListener('change', handleFileSelect);
+    extractBtn.addEventListener('click', extractFrames);
+    previewBtn.addEventListener('click', previewFirstFrame);
+    downloadAllBtn.addEventListener('click', downloadAllFrames);
+    clearAllBtn.addEventListener('click', clearAllFrames);
+
+    // Functions
+    function updateQualityValue() {
+      qualityValue.textContent = `${qualitySlider.value}%`;
+    }
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Basic file validation
+      if (file.size > 100 * 1024 * 1024) { // 100MB limit
+        alert("File size exceeds 100MB limit. Please choose a smaller file.");
+        return;
+      }
+
+      // Update UI
+      fileInputLabel.innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>${file.name}</span>
+        <small>${formatFileSize(file.size)}</small>
+      `;
+      fileInputLabel.style.borderColor = "var(--accent)";
+
+      const url = URL.createObjectURL(file);
+      video.src = url;
+      video.style.display = "block";
+      
+      // Enable buttons when video is ready
+      video.onloadedmetadata = () => {
+        extractBtn.disabled = false;
+        previewBtn.disabled = false;
+      };
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + " bytes";
+      else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+      else return (bytes / 1048576).toFixed(1) + " MB";
+    }
+
+    async function extractFrames() {
+      if (isProcessing) return;
+      if (video.readyState < 2) {
+        alert("Please load a video first.");
+        return;
+      }
+
+      isProcessing = true;
+      extractBtn.disabled = true;
+      extractBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+      progressContainer.style.display = "block";
+      
+      const interval = parseFloat(frameInterval.value);
+      const duration = video.duration;
+      const format = formatSelect.value;
+      const quality = parseInt(qualitySlider.value) / 100;
+      const width = maxWidth.value ? parseInt(maxWidth.value) : null;
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Clear previous results
+      imageContainer.innerHTML = '';
+      extractedFrames = [];
+      
+      // Calculate total frames to extract
+      const totalFrames = Math.ceil(duration / interval);
+      let framesExtracted = 0;
+      
+      // Create empty state temporarily
+      const emptyState = document.createElement('div');
+      emptyState.className = 'empty-state loading';
+      emptyState.innerHTML = `
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Extracting frames...</p>
+      `;
+      imageContainer.appendChild(emptyState);
+      
+      // Extract frames at intervals
+      for (let t = 0; t < duration; t += interval) {
+        await extractFrameAtTime(t, canvas, ctx, format, quality, width);
+        
+        // Update progress
+        framesExtracted++;
+        const progress = (framesExtracted / totalFrames) * 100;
+        updateProgress(progress, framesExtracted, totalFrames);
+      }
+      
+      // Finalize
+      isProcessing = false;
+      extractBtn.disabled = false;
+      extractBtn.innerHTML = '<i class="fas fa-camera"></i> Extract Frames';
+      progressText.textContent = "Extraction complete!";
+      
+      // Show batch actions
+      if (extractedFrames.length > 0) {
+        batchActions.style.display = "flex";
+        frameCount.textContent = `${extractedFrames.length} frames`;
+      }
+    }
+
+    async function extractFrameAtTime(time, canvas, ctx, format, quality, maxWidth) {
+      return new Promise(resolve => {
+        video.currentTime = time;
+        
+        video.onseeked = () => {
+          // Calculate dimensions
+          let width = video.videoWidth;
+          let height = video.videoHeight;
+          
+          if (maxWidth && width > maxWidth) {
+            height = (maxWidth / width) * height;
+            width = maxWidth;
+          }
+          
+          // Set canvas dimensions
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Draw frame
+          ctx.drawImage(video, 0, 0, width, height);
+          
+          // Create blob and store frame
+          canvas.toBlob(blob => {
+            const frameUrl = URL.createObjectURL(blob);
+            const frameInfo = {
+              url: frameUrl,
+              time: time,
+              format: format,
+              width: width,
+              height: height
+            };
+            
+            extractedFrames.push(frameInfo);
+            displayFrame(frameInfo);
+            resolve();
+          }, `image/${format}`, quality);
+        };
+      });
+    }
+
+    function displayFrame(frameInfo) {
+      // Remove empty state if present
+      const emptyState = imageContainer.querySelector('.empty-state');
+      if (emptyState) emptyState.remove();
+      
+      // Create frame card
+      const frameCard = document.createElement('div');
+      frameCard.className = 'image-card';
+      
+      const img = document.createElement('img');
+      img.src = frameInfo.url;
+      img.loading = "lazy";
+      
+      const imageInfo = document.createElement('div');
+      imageInfo.className = 'image-info';
+      imageInfo.innerHTML = `
+        <span>${frameInfo.time.toFixed(1)}s</span>
+        <button class="download-btn" data-url="${frameInfo.url}" data-filename="frame_${frameInfo.time.toFixed(1)}.${frameInfo.format}">
+          <i class="fas fa-download"></i> Download
+        </button>
+      `;
+      
+      frameCard.appendChild(img);
+      frameCard.appendChild(imageInfo);
+      imageContainer.appendChild(frameCard);
+      
+      // Add download listener
+      const downloadBtn = frameCard.querySelector('.download-btn');
+      downloadBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        downloadImage(downloadBtn.dataset.url, downloadBtn.dataset.filename);
+      });
+    }
+
+    function updateProgress(percent, current, total) {
+      progressBar.style.width = `${percent}%`;
+      progressPercent.textContent = `${Math.round(percent)}%`;
+      progressText.textContent = `Extracting frame ${current} of ${total}...`;
+    }
+
+    async function previewFirstFrame() {
+      if (video.readyState < 2) {
+        alert("Please load a video first.");
+        return;
+      }
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const format = formatSelect.value;
+      const quality = parseInt(qualitySlider.value) / 100;
+      const width = maxWidth.value ? parseInt(maxWidth.value) : null;
+      
+      // Seek to 0.1s to avoid potential black frames at start
+      video.currentTime = 0.1;
+      
+      await new Promise(resolve => {
+        video.onseeked = () => {
+          // Calculate dimensions
+          let width = video.videoWidth;
+          let height = video.videoHeight;
+          
+          if (maxWidth && width > maxWidth) {
+            height = (maxWidth / width) * height;
+            width = maxWidth;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(video, 0, 0, width, height);
+          
+          // Show preview
+          imageContainer.innerHTML = '';
+          const frameUrl = canvas.toDataURL(`image/${format}`, quality);
+          const frameInfo = {
+            url: frameUrl,
+            time: 0,
+            format: format,
+            width: width,
+            height: height
+          };
+          
+          displayFrame(frameInfo);
+          resolve();
+        };
+      });
+    }
+
+    function downloadImage(url, filename) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function downloadAllFrames() {
+      if (extractedFrames.length === 0) return;
+      
+      // Create a zip file using JSZip
+      alert("In a production environment, this would download a ZIP file containing all frames.\n\nFor this demo, you can download each frame individually.");
+      
+      // In a real implementation, you would use a library like JSZip:
+      /*
+      const zip = new JSZip();
+      const folder = zip.folder("video_frames");
+      
+      extractedFrames.forEach((frame, index) => {
+        const blob = dataURLtoBlob(frame.url);
+        folder.file(`frame_${frame.time.toFixed(1)}.${frame.format}`, blob);
+      });
+      
+      zip.generateAsync({type:"blob"}).then(content => {
+        saveAs(content, "video_frames.zip");
+      });
+      */
+    }
+
+    function clearAllFrames() {
+      if (confirm("Are you sure you want to clear all extracted frames?")) {
+        imageContainer.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-images"></i>
+            <p>Extracted frames will appear here</p>
+          </div>
+        `;
+        extractedFrames = [];
+        batchActions.style.display = "none";
+        
+        // Revoke object URLs to free memory
+        extractedFrames.forEach(frame => {
+          URL.revokeObjectURL(frame.url);
+        });
+      }
+    }
+
+    // Initialize
+    updateQualityValue();
+  </script>
+</body>
+</html>
